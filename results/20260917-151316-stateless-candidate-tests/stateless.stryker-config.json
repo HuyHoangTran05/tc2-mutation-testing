@@ -1,0 +1,19 @@
+{
+  "stryker-config": {
+    "project": "Stateless.csproj",
+    "test-projects": ["../../test/Stateless.Tests/Stateless.Tests.csproj"],
+    "target-framework": "net9.0",
+    "mutate": [
+      "**/StateRepresentation.cs",
+      "**/TransitionGuard.cs",
+      "**/GuardCondition.cs",
+      "**/IgnoredTriggerBehaviour.cs",
+      "**/ReentryTriggerBehaviour.cs",
+      "**/TransitioningTriggerBehaviour.cs"
+    ],
+    "reporters": ["json", "html", "progress"],
+    "concurrency": 4,
+    "additional-timeout": 5000,
+    "disable-bail": false
+  }
+}
