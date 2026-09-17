@@ -86,3 +86,21 @@ def test_summarize_dir_writes_outputs(tmp_path):
     with (tmp_path / "survivors.csv").open(encoding="utf-8", newline="") as fh:
         rows = list(csv.DictReader(fh))
     assert rows[1]["verdict"] == "real_gap"
+
+
+def test_relativize_report_strips_local_paths(tmp_path):
+    from tc2.run import relativize_report
+
+    base = tmp_path / "targets" / "lib"
+    report = make_report()
+    report["files"] = {str(base / "src" / "up.cs"): report["files"]["src/up.ts"]}
+    report["projectRoot"] = str(base)
+    src = tmp_path / "raw.json"
+    src.write_text(json.dumps(report), encoding="utf-8")
+
+    relativize_report(src, tmp_path / "mutation.json", base)
+
+    out = json.loads((tmp_path / "mutation.json").read_text(encoding="utf-8"))
+    assert list(out["files"]) == ["src/up.cs"]
+    assert "projectRoot" not in out
+    assert str(tmp_path) not in json.dumps(out)
