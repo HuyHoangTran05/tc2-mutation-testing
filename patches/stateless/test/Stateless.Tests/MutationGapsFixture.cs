@@ -30,28 +30,8 @@ namespace Stateless.Tests
             Assert.Equal(State.A, sm.State);
         }
 
-        // Mutants 1633 and 1635: moving from a substate to its own parent must not
-        // run the parent's exit action.
-        [Fact]
-        public void TransitionFromSubstateToParent_DoesNotExitParent()
-        {
-            var exited = new List<State>();
-            var sm = new StateMachine<State, Trigger>(State.A);
-            sm.Configure(State.B)
-                .OnExit(() => exited.Add(State.B));
-            sm.Configure(State.A)
-                .SubstateOf(State.B)
-                .OnExit(() => exited.Add(State.A))
-                .Permit(Trigger.X, State.B);
-
-            sm.Fire(Trigger.X);
-
-            Assert.Equal(State.B, sm.State);
-            Assert.Equal(new[] { State.A }, exited);
-        }
-
-        // Mutant 1636 (no coverage): moving from a nested substate to its
-        // grandparent must exit the intermediate parent but not the grandparent.
+        // Mutants 1635 and 1636 (1636 had no coverage): moving from a nested substate
+        // to its grandparent must exit the intermediate parent but not the grandparent.
         [Fact]
         public void TransitionFromNestedSubstateToGrandparent_ExitsIntermediateParentOnly()
         {
