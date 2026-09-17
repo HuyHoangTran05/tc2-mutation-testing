@@ -30,10 +30,12 @@ Chỉ dùng repo **mã nguồn mở** (Dinero.js, Stateless). Không đưa code 
 .\.venv\Scripts\python.exe -m pytest -q                        # phải xanh trước khi commit
 .\.venv\Scripts\python.exe -m tc2 setup <dinero|stateless>     # clone đúng commit + cài Stryker
 .\.venv\Scripts\python.exe -m tc2 run <target> --label <nhãn>  # chạy Stryker -> results/<thời gian>-<target>-<nhãn>/
+.\.venv\Scripts\python.exe -m tc2 run <target> --label candidate-tests --with-tests --reviewed data\reviewed\<target>.csv
 .\.venv\Scripts\python.exe -m tc2 summarize <results-dir> --reviewed data\reviewed\<target>.csv
+.\.venv\Scripts\python.exe -m tc2 compare <before-dir> <after-dir> --reviewed data\reviewed\<target>.csv [--out docs\comparisons\x.md]
 ```
 
-Thời gian tham khảo: Dinero.js phạm vi pilot khoảng 30 giây, Stateless khoảng 50 giây. Mở rộng `mutate` ra toàn thư viện
+Thời gian tham khảo: Dinero.js phạm vi pilot khoảng 2 phút, Stateless khoảng 40 giây. Mở rộng `mutate` ra toàn thư viện
 có thể mất hàng chục phút; chạy thử phạm vi rộng thì dùng file cấu hình tạm ngoài repo, không sửa config đang dùng cho baseline.
 
 ## Cấu trúc
@@ -47,15 +49,20 @@ có thể mất hàng chục phút; chạy thử phạm vi rộng thì dùng fil
 | `tc2/common.py` | load target, tìm `dotnet`/`npx`, chạy subprocess |
 | `tc2/setup.py` | clone theo SHA (`git fetch --depth 1 origin <sha>`), `npm ci --ignore-scripts`, `dotnet tool install` |
 | `tc2/run.py` | chạy Stryker, ghi `run.json` (phiên bản công cụ), chuyển đường dẫn báo cáo về tương đối, gọi summarize |
+| `tc2/compare.py` | so sánh hai lần chạy, ghép mutant theo (file, dòng, cột, mutator, đoạn thay thế) |
 | `tc2/summarize.py` | đọc báo cáo mutation-testing-elements (chung cho cả hai Stryker), viết `summary.md`, `survivors.csv` |
+| `patches/<target>/` | test ứng viên, giữ đúng đường dẫn như trong target; chỉ được thêm tạm qua `run --with-tests` |
+| `docs/review-baseline.md`, `docs/comparisons/` | review gửi mentor, bảng so sánh trước/sau |
 | `data/reviewed/<target>.csv` | survivor đã review tay (`verdict`, `reason`, `mentor_confirmed`) |
 | `results/` | kết quả từng lần chạy; `mutation.html` và `stryker.log` không commit |
 | `tests/` | pytest, không gọi mạng và không chạy Stryker thật |
 
 ## Quy ước kết quả (quan trọng)
 
-- **Không sửa code của target** (`targets/`), trừ khi thêm test mới cho lỗ hổng đã được mentor xác nhận. Test mới cần được
-  lưu lại trong repo này (ví dụ `patches/<target>/`), vì `targets/` không được commit.
+- **Không sửa code của target** (`targets/`). Test mới đặt trong `patches/<target>/` và chỉ được đưa vào qua
+  `run --with-tests` (lệnh này tự xóa chúng sau khi chạy). Muốn chạy thử nhanh một file test thì chép vào, chạy, rồi xóa ngay,
+  và kiểm tra `git -C targets/<repo> status` phải sạch (trừ `reports/`, `dotnet-tools.json`).
+- Test trong `patches/` là **ứng viên** cho đến khi mentor xác nhận `real_gap`. Lần chạy chính thức sau đó dùng `--label after-tests`.
 - **Không đổi commit ghim, phiên bản Stryker hay phạm vi `mutate`** giữa lần chạy baseline và `after-tests`; nếu buộc phải
   đổi thì chạy lại baseline và ghi rõ lý do.
 - `results/<run>/` là **bằng chứng, không sửa tay**. Muốn tính lại thì dùng `tc2 summarize`.
@@ -63,6 +70,10 @@ có thể mất hàng chục phút; chạy thử phạm vi rộng thì dùng fil
 - `verdict` chỉ nhận `real_gap`, `equivalent`, `not_worth` hoặc để trống. Claude có thể đề xuất verdict nhưng phải ghi rõ
   trong `reason`; chỉ người dùng hoặc mentor điền `mentor_confirmed`.
 - Test mới phải có giá trị kỳ vọng độc lập, không chép lại chính công thức của code đang được test.
+- **Kết quả Dinero.js không hoàn toàn tất định:** property test fast-check dùng seed ngẫu nhiên, nên một mutant có thể lúc
+  bị bắt, lúc không (mutant 81). Khi so trước/sau, dùng lần chạy lặp lại làm mốc và kiểm tra `compare` giữa hai lần baseline.
+- Id mutant ổn định khi code nguồn và cấu hình không đổi. Dù vậy, `compare` vẫn ghép theo vị trí; `summarize` ghép verdict theo
+  (file, id), nên phải kiểm tra lại verdict nếu code nguồn hoặc phạm vi mutate thay đổi.
 - Báo cáo JSON của Stryker.NET chứa cả file ngoài phạm vi (trạng thái `Ignored`), và số CompileError có thể gồm cả các file đó.
 
 ## Code
