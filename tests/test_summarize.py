@@ -104,3 +104,28 @@ def test_relativize_report_strips_local_paths(tmp_path):
     assert list(out["files"]) == ["src/up.cs"]
     assert "projectRoot" not in out
     assert str(tmp_path) not in json.dumps(out)
+
+
+def test_relativize_report_rewrites_config_paths(tmp_path):
+    from tc2.run import ROOT, relativize_report
+
+    report = make_report()
+    report["config"] = {"configFile": str(ROOT / "config" / "x.json"), "mutate": ["src/*.ts"]}
+    src = tmp_path / "raw.json"
+    src.write_text(json.dumps(report), encoding="utf-8")
+
+    relativize_report(src, tmp_path / "mutation.json", tmp_path)
+
+    out = json.loads((tmp_path / "mutation.json").read_text(encoding="utf-8"))
+    assert out["config"] == {"configFile": "config/x.json", "mutate": ["src/*.ts"]}
+
+
+def test_parse_tool_list_drops_manifest_path():
+    from tc2.run import parse_tool_list
+
+    output = (
+        "Package Id          Version      Commands            Manifest\n"
+        "---------------------------------------------------------------\n"
+        "dotnet-stryker      5.0.0        dotnet-stryker      D:\\x\\dotnet-tools.json\n"
+    )
+    assert parse_tool_list(output) == {"dotnet-stryker": "5.0.0"}

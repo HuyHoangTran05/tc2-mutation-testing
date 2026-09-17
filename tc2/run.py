@@ -17,7 +17,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from .common import RESULTS_DIR, Target, capture, dotnet_env_if_needed, get_target, tool
+from .common import RESULTS_DIR, ROOT, Target, capture, dotnet_env_if_needed, get_target, tool
 from .summarize import summarize_dir
 
 
@@ -46,16 +46,25 @@ def js_versions(target: Target) -> dict[str, str]:
 
 def csharp_versions(target: Target) -> dict[str, str]:
     dotnet = tool("dotnet")
-    versions = {
-        "dotnet_sdk": capture([dotnet, "--version"], target.workdir),
-        "dotnet_tools": capture([dotnet, "tool", "list", "--local"], target.workdir),
-    }
+    versions = {"dotnet_sdk": capture([dotnet, "--version"], target.workdir)}
+    tools = capture([dotnet, "tool", "list", "--local"], target.workdir)
+    versions.update({f"tool:{k}": v for k, v in parse_tool_list(tools).items()})
     # Test framework and runner versions come from the test project's package references.
     for csproj in target.test_workdir.glob("*.csproj"):
         text = csproj.read_text(encoding="utf-8")
         for name, version in re.findall(r'PackageReference\s+Include="([^"]+)"\s+Version="([^"]+)"', text):
             versions[f"package:{name}"] = version
     return versions
+
+
+def parse_tool_list(output: str) -> dict[str, str]:
+    """Package id -> version from `dotnet tool list` (the manifest column holds a local path)."""
+    tools = {}
+    for line in output.splitlines()[2:]:
+        parts = line.split()
+        if len(parts) >= 2:
+            tools[parts[0]] = parts[1]
+    return tools
 
 
 def js_report_paths(target: Target) -> tuple[Path, Path]:
@@ -74,6 +83,19 @@ def csharp_report_paths(target: Target, started: float) -> tuple[Path, Path]:
     return newest / "mutation-report.json", newest / "mutation-report.html"
 
 
+def strip_local_paths(value, bases: tuple[Path, ...]):
+    """Recursively rewrite absolute paths under any of `bases` as relative POSIX paths."""
+    if isinstance(value, dict):
+        return {k: strip_local_paths(v, bases) for k, v in value.items()}
+    if isinstance(value, list):
+        return [strip_local_paths(v, bases) for v in value]
+    if isinstance(value, str) and Path(value).is_absolute():
+        for base in bases:
+            if Path(value).is_relative_to(base):
+                return Path(value).relative_to(base).as_posix()
+    return value
+
+
 def relativize_report(src: Path, dest: Path, base: Path) -> None:
     """Copy a report, rewriting absolute file keys (Stryker.NET) relative to the target repo."""
     report = json.loads(src.read_text(encoding="utf-8"))
@@ -87,8 +109,9 @@ def relativize_report(src: Path, dest: Path, base: Path) -> None:
             renamed[name] = info
         if files:
             report[section] = renamed
-    for key in ("projectRoot",):
-        report.pop(key, None)
+    report.pop("projectRoot", None)
+    if "config" in report:
+        report["config"] = strip_local_paths(report["config"], (base, ROOT))
     dest.write_text(json.dumps(report), encoding="utf-8")
 
 
