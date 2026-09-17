@@ -72,4 +72,23 @@ Test mới chỉ viết cho các `real_gap` mentor đã xác nhận. Sau đó ch
 
 ## Kết quả
 
-Đang cập nhật sau lần chạy baseline.
+### Baseline (17/09/2026)
+
+| Target | Điểm (bắt được / hợp lệ) | Killed | Survived | NoCoverage | Timeout | Không hợp lệ | Thời gian |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Dinero.js | 348/359 = 96.9% | 344 | 10 | 1 | 4 | 0 | 101 s |
+| Stateless | 85/97 = 87.6% | 85 | 6 | 6 | 0 | 20 | 38 s |
+
+Chi tiết: [`results/20260917-145130-dinero-baseline/`](results/20260917-145130-dinero-baseline/summary.md) và
+[`results/20260917-145311-stateless-baseline/`](results/20260917-145311-stateless-baseline/summary.md).
+Chưa review mutant nào, nên chưa có số equivalent.
+
+- **Dinero.js:** 10 mutant sống sót, tập trung ở `allocate` (kiểm tra tỉ lệ âm), `trimScale`, `distribute`
+  (vòng chia phần dư) và hai chỗ optional chaining.
+- **Stateless:** 6 mutant sống sót và 6 NoCoverage, gần như toàn bộ ở `StateRepresentation.cs` và `TransitionGuard.cs`
+  (ví dụ `All()` đổi thành `Any()` trong kiểm tra guard).
+
+### Lần chạy thăm dò toàn thư viện Dinero.js
+
+Không commit, cấu hình tạm. Lần chạy mất 28 phút, điểm 631/796 = 79.3%. Trong đó 152/164 mutant sống sót và 123 timeout
+nằm ở bảng tiền tệ `bigint/currencies`, là dữ liệu chứ không phải quy tắc nghiệp vụ. Vì vậy phạm vi pilot bỏ phần này.
