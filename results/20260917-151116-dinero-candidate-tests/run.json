@@ -1,0 +1,42 @@
+{
+  "target": "dinero",
+  "language": "js",
+  "repo": "https://github.com/dinerojs/dinero.js",
+  "commit": "76b969e519dc44675d4af898d25629995d0b16f2",
+  "pinned_commit": "76b969e519dc44675d4af898d25629995d0b16f2",
+  "business_rule": "Money arithmetic, comparison, scaling, rounding modes and allocation across ratios (core/api, core/utils, core/divide)",
+  "started": "2026-09-17T15:11:17",
+  "duration_s": 119.0,
+  "exit_code": 0,
+  "command": [
+    "npx.CMD",
+    "stryker",
+    "run",
+    "dinero.stryker.config.json"
+  ],
+  "versions": {
+    "node": "v22.19.0",
+    "npm": "10.9.3",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
+    "vitest": "4.1.0"
+  },
+  "added_tests": [
+    {
+      "path": "packages/dinero.js/src/api/__tests__/allocate.mutation-gaps.test.ts",
+      "sha256": "cc33a8a4ae8c3d95fc7acc9d237dc21ac0af9f7553272cf37bf0b95b2f98709f"
+    },
+    {
+      "path": "packages/dinero.js/src/api/__tests__/haveSameAmount.mutation-gaps.test.ts",
+      "sha256": "d869fe4be649a62693adff8bc3647f35d220d24db6502af21d9ae54b39eb3b7f"
+    },
+    {
+      "path": "packages/dinero.js/src/api/__tests__/haveSameCurrency.mutation-gaps.test.ts",
+      "sha256": "6161e5bf45ca27cb2d22331918364275f3705f53d302a990b5b5da6439ca5a20"
+    },
+    {
+      "path": "packages/dinero.js/src/core/utils/__tests__/distribute.mutation-gaps.test.ts",
+      "sha256": "55562f26082233dd11b0ab978ecb1c6d47605353142e1419918de8e418e640ae"
+    }
+  ]
+}
