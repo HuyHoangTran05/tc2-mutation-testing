@@ -1,0 +1,11 @@
+# Target repositories are cloned at pinned commits by `python -m tc2 setup`.
+targets/
+
+# Regenerable run artifacts: the HTML and log embed absolute local paths.
+results/*/mutation.html
+results/*/stryker.log
+
+__pycache__/
+.pytest_cache/
+.venv/
+.env
