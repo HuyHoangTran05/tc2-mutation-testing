@@ -3,12 +3,16 @@
 Output goes to results/<timestamp>-<target>/: mutation.json, mutation.html, run.json, config copy,
 stryker.log, summary.md and survivors.csv.
 
-Usage: python -m tc2 run <target> [--label NAME] [--reviewed data/reviewed/<target>.csv]
+With --with-tests, new test files from patches/<target>/ (mirroring the target's paths) are copied
+into the target for this run only and always removed afterwards.
+
+Usage: python -m tc2 run <target> [--label NAME] [--reviewed data/reviewed/<target>.csv] [--with-tests]
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -17,7 +21,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from .common import RESULTS_DIR, ROOT, Target, capture, dotnet_env_if_needed, get_target, tool
+from .common import PATCHES_DIR, RESULTS_DIR, ROOT, Target, capture, dotnet_env_if_needed, get_target, tool
 from .summarize import summarize_dir
 
 
@@ -115,11 +119,40 @@ def relativize_report(src: Path, dest: Path, base: Path) -> None:
     dest.write_text(json.dumps(report), encoding="utf-8")
 
 
+def patch_files(patch_dir: Path) -> list[Path]:
+    return sorted(p for p in patch_dir.rglob("*") if p.is_file())
+
+
+def apply_test_patch(patch_dir: Path, target_dir: Path) -> list[dict]:
+    """Copy new test files into the target; refuse to overwrite existing files."""
+    files = patch_files(patch_dir)
+    if not files:
+        raise SystemExit(f"No test files under {patch_dir}")
+    for src in files:
+        dest = target_dir / src.relative_to(patch_dir)
+        if dest.exists():
+            raise SystemExit(f"{dest} already exists; patches may only add new files")
+    added = []
+    for src in files:
+        rel = src.relative_to(patch_dir)
+        (target_dir / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, target_dir / rel)
+        added.append({"path": rel.as_posix(), "sha256": hashlib.sha256(src.read_bytes()).hexdigest()})
+    return added
+
+
+def remove_test_patch(added: list[dict], target_dir: Path) -> None:
+    for entry in added:
+        (target_dir / entry["path"]).unlink(missing_ok=True)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="tc2 run", description=__doc__)
     parser.add_argument("target")
     parser.add_argument("--label", default="", help="suffix for the results folder, e.g. after-tests")
     parser.add_argument("--reviewed", type=Path, help="reviewed survivors CSV to carry verdicts over")
+    parser.add_argument("--with-tests", action="store_true",
+                        help="temporarily add the new tests from patches/<target>/")
     args = parser.parse_args(argv)
 
     target = get_target(args.target)
@@ -131,10 +164,14 @@ def main(argv: list[str] | None = None) -> int:
     versions = js_versions(target) if target.language == "js" else csharp_versions(target)
     cmd = stryker_command(target)
     print(f"$ {' '.join(cmd)}  (in {target.workdir})", flush=True)
+    added = apply_test_patch(PATCHES_DIR / target.name, target.dir) if args.with_tests else []
     started = time.time()
-    with (out_dir / "stryker.log").open("w", encoding="utf-8") as log:
-        proc = subprocess.run(cmd, cwd=target.workdir, stdout=log, stderr=subprocess.STDOUT,
-                              env=dotnet_env_if_needed(cmd))
+    try:
+        with (out_dir / "stryker.log").open("w", encoding="utf-8") as log:
+            proc = subprocess.run(cmd, cwd=target.workdir, stdout=log, stderr=subprocess.STDOUT,
+                                  env=dotnet_env_if_needed(cmd))
+    finally:
+        remove_test_patch(added, target.dir)
     duration = round(time.time() - started, 1)
 
     run_info = {
@@ -149,6 +186,7 @@ def main(argv: list[str] | None = None) -> int:
         "exit_code": proc.returncode,
         "command": [Path(cmd[0]).name, *cmd[1:-1], target.stryker_config.name],
         "versions": versions,
+        "added_tests": added,
     }
     (out_dir / "run.json").write_text(json.dumps(run_info, indent=2) + "\n", encoding="utf-8")
     shutil.copy2(target.stryker_config, out_dir / target.stryker_config.name)

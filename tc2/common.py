@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = ROOT / "results"
 REVIEWED_DIR = ROOT / "data" / "reviewed"
+PATCHES_DIR = ROOT / "patches"
 
 
 @dataclass
