@@ -6,15 +6,24 @@
     "related": false
   },
   "mutate": [
+    "packages/dinero.js/src/core/api/*.ts",
+    "packages/dinero.js/src/core/utils/*.ts",
     "packages/dinero.js/src/core/divide/*.ts",
-    "!packages/dinero.js/src/core/divide/index.ts",
-    "packages/dinero.js/src/core/utils/distribute.ts",
-    "packages/dinero.js/src/api/allocate.ts"
+    "!packages/dinero.js/src/core/**/index.ts"
   ],
   "coverageAnalysis": "perTest",
-  "reporters": ["clear-text", "progress", "html", "json"],
-  "htmlReporter": { "fileName": "reports/mutation/mutation.html" },
-  "jsonReporter": { "fileName": "reports/mutation/mutation.json" },
+  "reporters": [
+    "clear-text",
+    "progress",
+    "html",
+    "json"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/mutation.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
   "timeoutMS": 10000,
   "concurrency": 4,
   "tempDirName": ".stryker-tmp",

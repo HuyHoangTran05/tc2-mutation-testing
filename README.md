@@ -10,7 +10,7 @@ Mutant **sống sót** (test vẫn pass) cho thấy test có chạy qua code nh�
 
 | Target | Ngôn ngữ | Quy tắc nghiệp vụ | Công cụ |
 | --- | --- | --- | --- |
-| [Dinero.js](https://github.com/dinerojs/dinero.js) | TypeScript | Các chế độ làm tròn tiền (`core/divide`), chia tiền theo tỉ lệ (`distribute`, `allocate`) | StrykerJS + Vitest |
+| [Dinero.js](https://github.com/dinerojs/dinero.js) | TypeScript | Phép tính, so sánh, đổi scale, làm tròn và chia tiền theo tỉ lệ (`core/api`, `core/utils`, `core/divide`) | StrykerJS + Vitest |
 | [Stateless](https://github.com/dotnet-state-machine/stateless) | C# | Quy tắc chuyển trạng thái: guard, trigger bị bỏ qua, reentry | Stryker.NET + xUnit (net9.0) |
 
 Commit của từng repo được ghim trong [`targets.toml`](targets.toml). Phạm vi mutate nằm trong [`config/`](config/).

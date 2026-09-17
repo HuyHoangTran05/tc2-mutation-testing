@@ -41,7 +41,7 @@ có thể mất hàng chục phút; chạy thử phạm vi rộng thì dùng fil
 | Đường dẫn | Vai trò |
 | --- | --- |
 | `targets.toml` | repo, commit ghim, thư mục làm việc, file cấu hình Stryker, phiên bản Stryker của từng target |
-| `config/dinero.stryker.config.json` | StrykerJS: runner vitest, `mutate` = `core/divide`, `distribute`, `allocate` |
+| `config/dinero.stryker.config.json` | StrykerJS: runner vitest, `mutate` = `core/api`, `core/utils`, `core/divide` (bỏ bảng tiền tệ `currencies`: toàn dữ liệu, nhiều timeout) |
 | `config/stateless.stryker-config.json` | Stryker.NET: chạy trong `src/Stateless`, test project ở `test/Stateless.Tests`, net9.0 |
 | `tc2/__main__.py` | CLI; lệnh mới phải thêm vào `COMMANDS` |
 | `tc2/common.py` | load target, tìm `dotnet`/`npx`, chạy subprocess |

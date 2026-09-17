@@ -9,7 +9,7 @@ dir = "targets/dinero.js"
 workdir = "."
 stryker_config = "config/dinero.stryker.config.json"
 stryker_packages = ["@stryker-mutator/core@10.0.0", "@stryker-mutator/vitest-runner@10.0.0"]
-business_rule = "Money rounding modes (core/divide) and allocation of amounts across ratios (distribute, allocate)"
+business_rule = "Money arithmetic, comparison, scaling, rounding modes and allocation across ratios (core/api, core/utils, core/divide)"
 
 [targets.stateless]
 language = "csharp"
