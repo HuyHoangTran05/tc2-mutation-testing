@@ -59,7 +59,7 @@ Commit ghim, phiên bản công cụ và phạm vi mutate giữ nguyên. Test �
 | Dinero.js | baseline lặp lại lần 1 | 347/359 = 96.7% | 354/359 = 98.6% | 11 → 5 | 1 → 0 | 114 s → 119 s |
 | Stateless | baseline | 85/97 = 87.6% | 90/97 = 92.8% | 6 → 4 | 6 → 3 | 38 s → 34 s |
 
-- **Dinero.js:** 7 test mới bắt được cả 7 lỗ hổng thật. Mutant 297 và 298 bị bắt theo kiểu **Timeout**: khi bỏ nhánh chống treo,
+- **Dinero.js:** 9 test mới (4 file) bắt được cả 7 lỗ hổng thật. Mutant 297 và 298 bị bắt theo kiểu **Timeout**: khi bỏ nhánh chống treo,
   input `1e33` làm vòng lặp chạy mãi. Mutant 81 trước đây chỉ bị bắt nhờ may mắn, giờ bị bắt chắc chắn. 5 mutant còn lại
   đều là `equivalent` hoặc `not_worth`. Bảng chi tiết:
   [`dinero-repeat1-vs-candidate-tests.md`](comparisons/dinero-repeat1-vs-candidate-tests.md).
