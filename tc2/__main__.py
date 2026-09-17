@@ -6,6 +6,7 @@ Commands:
   setup      clone a target at its pinned commit and install Stryker
   run        run Stryker and store the report with tool versions
   summarize  rebuild summary.md and survivors.csv for a results folder
+  compare    before/after table for two runs of the same target
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from __future__ import annotations
 import importlib
 import sys
 
-COMMANDS = ["setup", "run", "summarize"]
+COMMANDS = ["setup", "run", "summarize", "compare"]
 
 
 def main(argv: list[str] | None = None) -> int:
