@@ -1,0 +1,25 @@
+{
+  "target": "dinero",
+  "language": "js",
+  "repo": "https://github.com/dinerojs/dinero.js",
+  "commit": "76b969e519dc44675d4af898d25629995d0b16f2",
+  "pinned_commit": "76b969e519dc44675d4af898d25629995d0b16f2",
+  "business_rule": "Money arithmetic, comparison, scaling, rounding modes and allocation across ratios (core/api, core/utils, core/divide)",
+  "started": "2026-09-17T15:09:19",
+  "duration_s": 117.6,
+  "exit_code": 0,
+  "command": [
+    "npx.CMD",
+    "stryker",
+    "run",
+    "dinero.stryker.config.json"
+  ],
+  "versions": {
+    "node": "v22.19.0",
+    "npm": "10.9.3",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
+    "vitest": "4.1.0"
+  },
+  "added_tests": []
+}
