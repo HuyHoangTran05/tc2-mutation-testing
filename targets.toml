@@ -1,0 +1,23 @@
+# Target repositories for the mutation testing pilot.
+# `commit` pins the exact revision; results are only comparable for the same commit and tool versions.
+
+[targets.dinero]
+language = "js"
+repo = "https://github.com/dinerojs/dinero.js"
+commit = "76b969e519dc44675d4af898d25629995d0b16f2"
+dir = "targets/dinero.js"
+workdir = "."
+stryker_config = "config/dinero.stryker.config.json"
+stryker_packages = ["@stryker-mutator/core@10.0.0", "@stryker-mutator/vitest-runner@10.0.0"]
+business_rule = "Money rounding modes (core/divide) and allocation of amounts across ratios (distribute, allocate)"
+
+[targets.stateless]
+language = "csharp"
+repo = "https://github.com/dotnet-state-machine/stateless"
+commit = "588f1a1a08683b452eb7c05562d9f055693cba5d"
+dir = "targets/stateless"
+workdir = "src/Stateless"
+test_workdir = "test/Stateless.Tests"
+stryker_config = "config/stateless.stryker-config.json"
+stryker_tool_version = "5.0.0"
+business_rule = "Allowed state transitions: guards, ignored triggers and reentry"
