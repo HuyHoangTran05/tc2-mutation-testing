@@ -1,0 +1,78 @@
+{
+  "generated_from": "results/ and data/reviewed/ in this repo",
+  "targets": {
+    "dinero": {
+      "business_rule": "Money arithmetic, comparison, scaling, rounding modes and allocation across ratios",
+      "baseline": {
+        "label": "Baseline (lần chạy lặp lại, dùng làm mốc ổn định)",
+        "score": 0.9665738161559888,
+        "detected": 347,
+        "valid": 359,
+        "counts": {
+          "NoCoverage": 1,
+          "Killed": 343,
+          "Survived": 11,
+          "Timeout": 4
+        },
+        "duration_s": 114.2,
+        "added_tests": 0
+      },
+      "after": {
+        "label": "Sau khi thêm test (after-tests, mentor đã xác nhận)",
+        "score": 0.9860724233983287,
+        "detected": 354,
+        "valid": 359,
+        "counts": {
+          "Killed": 348,
+          "Survived": 5,
+          "Timeout": 6
+        },
+        "duration_s": 70.5,
+        "added_tests": 4
+      },
+      "verdicts": {
+        "real_gap": 7,
+        "equivalent": 4,
+        "not_worth": 1
+      }
+    },
+    "stateless": {
+      "business_rule": "Allowed state transitions: guards, ignored triggers and reentry",
+      "baseline": {
+        "label": "Baseline",
+        "score": 0.8762886597938144,
+        "detected": 85,
+        "valid": 97,
+        "counts": {
+          "Ignored": 1220,
+          "Killed": 85,
+          "CompileError": 20,
+          "NoCoverage": 6,
+          "Survived": 6
+        },
+        "duration_s": 38.3,
+        "added_tests": 0
+      },
+      "after": {
+        "label": "Sau khi thêm test (after-tests, mentor đã xác nhận)",
+        "score": 0.9278350515463918,
+        "detected": 90,
+        "valid": 97,
+        "counts": {
+          "Ignored": 1220,
+          "Killed": 90,
+          "CompileError": 20,
+          "NoCoverage": 3,
+          "Survived": 4
+        },
+        "duration_s": 43.0,
+        "added_tests": 1
+      },
+      "verdicts": {
+        "not_worth": 5,
+        "real_gap": 5,
+        "equivalent": 2
+      }
+    }
+  }
+}

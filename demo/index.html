@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>TC2 - Mutation Testing Pilot (demo cục bộ)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline-axis:  #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --delta-good:     #006300;
+    --series-before:  #2a78d6;
+    --series-after:   #eb6834;
+    --status-good:     #0ca30c;
+    --status-warning:  #fab219;
+    --status-serious:  #ec835a;
+    --status-critical: #d03b3b;
+    --status-muted:    #898781;
+    --cat-1: #2a78d6; /* real_gap */
+    --cat-3: #1baf7a; /* equivalent */
+    --cat-4: #eda100; /* not_worth */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page:           #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline-axis:  #383835;
+      --border:         rgba(255,255,255,0.10);
+      --delta-good:     #0ca30c;
+      --series-before:  #3987e5;
+      --series-after:   #d95926;
+      --cat-3: #199e70;
+      --cat-4: #c98500;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline-axis:  #383835;
+    --border:         rgba(255,255,255,0.10);
+    --delta-good:     #0ca30c;
+    --series-before:  #3987e5;
+    --series-after:   #d95926;
+    --cat-3: #199e70;
+    --cat-4: #c98500;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 16px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  header { padding: 8px 4px 24px; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  .subtitle { color: var(--text-secondary); font-size: 14px; margin: 0; }
+  .badge {
+    display: inline-block; margin-top: 10px; font-size: 12px; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px;
+  }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 18px; margin: 0 0 4px; }
+  .card .rule { color: var(--text-secondary); font-size: 13px; margin: 0 0 18px; }
+
+  .stat-row { display: flex; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+  .stat-tile { flex: 1 1 140px; }
+  .stat-tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .stat-tile .value { font-size: 26px; font-weight: 600; }
+  .stat-tile .delta { font-size: 13px; font-weight: 600; color: var(--delta-good); }
+
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-row .row-label { flex: 0 0 220px; font-size: 12.5px; color: var(--text-secondary); }
+  .bar-track {
+    flex: 1; position: relative; height: 24px;
+    background-image: repeating-linear-gradient(
+      to right, var(--gridline) 0, var(--gridline) 1px, transparent 1px, transparent 25%
+    );
+    background-color: transparent;
+    border-bottom: 1px solid var(--baseline-axis);
+  }
+  .bar-fill {
+    position: absolute; left: 0; top: 0; height: 100%;
+    border-radius: 0 4px 4px 0;
+  }
+  .bar-value {
+    flex: 0 0 56px; font-size: 13px; font-weight: 600; text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  table caption { text-align: left; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; caption-side: top; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--gridline); }
+  th { color: var(--text-muted); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: .02em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: -1px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 18px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+  .callout {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 16px; font-size: 13.5px; color: var(--text-secondary);
+  }
+  .callout h3 { font-size: 14px; color: var(--text-primary); margin: 0 0 8px; }
+  .callout ul { margin: 0; padding-left: 18px; }
+  .callout li { margin-bottom: 6px; }
+
+  code {
+    background: var(--gridline); padding: 1px 5px; border-radius: 4px; font-size: 12.5px;
+  }
+  footer { color: var(--text-muted); font-size: 12px; padding: 12px 4px 30px; }
+  #status { color: var(--text-muted); font-size: 13px; padding: 40px 4px; }
+
+  .run-card { border: 1px solid var(--series-before); }
+  .run-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+  select {
+    font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
+  }
+  .checkbox-label { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  button.run-btn {
+    font: inherit; font-size: 13.5px; font-weight: 600; padding: 8px 18px; border-radius: 8px;
+    border: none; background: var(--series-before); color: #fff; cursor: pointer;
+  }
+  button.run-btn:disabled { opacity: .5; cursor: default; }
+  .run-meta { font-size: 12px; color: var(--text-muted); margin-top: 10px; min-height: 16px; }
+  .spinner {
+    display: inline-block; width: 11px; height: 11px; border-radius: 50%;
+    border: 2px solid var(--gridline); border-top-color: var(--series-before);
+    animation: spin 0.8s linear infinite; vertical-align: -1px; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  pre.run-log {
+    display: none; margin-top: 12px; padding: 12px 14px; border-radius: 8px;
+    background: var(--page); border: 1px solid var(--border); color: var(--text-secondary);
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 11.5px;
+    max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  }
+  .run-result { margin-top: 16px; display: none; }
+  .run-badge-ok { color: var(--delta-good); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>TC2 &mdash; Mutation Testing Pilot</h1>
+    <p class="subtitle">Dinero.js (StrykerJS) và Stateless (Stryker.NET) &mdash; demo cục bộ chạy trên localhost.</p>
+    <span class="badge">python3 demo/server.py &middot; không gọi mạng ngoài, không đụng targets/ vĩnh viễn</span>
+  </header>
+
+  <section class="card run-card">
+    <h2>Chạy Stryker thật</h2>
+    <p class="rule">Bấm chạy sẽ gọi đúng lệnh CLI <code>python -m tc2 run</code> của dự án bằng subprocess thật &mdash;
+      không phải số có sẵn. Dinero.js mất khoảng 70&ndash;120s, Stateless khoảng 35&ndash;45s.</p>
+    <div class="run-controls">
+      <select id="run-target">
+        <option value="stateless">Stateless (nhanh hơn, ~40s)</option>
+        <option value="dinero">Dinero.js (~70-120s)</option>
+      </select>
+      <label class="checkbox-label"><input type="checkbox" id="run-with-tests"> kèm test ứng viên (<code>--with-tests</code>)</label>
+      <button class="run-btn" id="run-btn" onclick="runDemo()">Chạy Stryker thật</button>
+    </div>
+    <div class="run-meta" id="run-meta"></div>
+    <pre class="run-log" id="run-log"></pre>
+    <div class="run-result" id="run-result"></div>
+  </section>
+
+  <h2 style="font-size:15px;color:var(--text-secondary);margin:28px 4px 8px">Kết quả đã có sẵn trong repo (baseline &amp; after-tests đã mentor xác nhận)</h2>
+  <div id="status">Đang tải data.json&hellip;</div>
+  <main id="targets"></main>
+
+  <div class="callout" id="highlights" style="display:none">
+    <h3>Phát hiện chính</h3>
+    <ul>
+      <li><strong>3 kiểu test yếu</strong> tìm được: assertion chỉ kiểm tra kiểu exception (Stateless); test bị một điều kiện khác "che" (Dinero <code>allocate</code>); test tên đúng nhưng input không vào nhánh cần kiểm tra (Dinero <code>distribute</code>).</li>
+      <li><strong>Kết quả không tất định:</strong> property test fast-check của Dinero.js dùng seed ngẫu nhiên, một mutant có thể lúc bị bắt lúc không giữa các lần chạy giống hệt cấu hình.</li>
+      <li><strong>Bug thật phát hiện thêm:</strong> <code>distribute(1e32, [1,1,1])</code> trong Dinero.js bị treo (phần dư rơi đúng 2^53, nhánh chống vòng lặp vô hạn không kích hoạt). Chưa báo lên upstream.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Muốn chạy lại thật (không phải xem demo): <code>python -m tc2 run &lt;target&gt; --label demo --with-tests --reviewed data/reviewed/&lt;target&gt;.csv</code>.
+    Chi tiết đầy đủ: <code>README.md</code>, <code>docs/review-baseline.md</code>, <code>docs/comparisons/</code>.
+  </footer>
+</div>
+
+<script>
+const TARGET_META = {
+  dinero: { title: "Dinero.js", tool: "StrykerJS + Vitest" },
+  stateless: { title: "Stateless", tool: "Stryker.NET + xUnit" },
+};
+const STATUS_META = {
+  Killed:       { label: "Killed (bắt được)",      color: "var(--status-good)" },
+  Timeout:      { label: "Timeout (tính là bắt được)", color: "var(--status-good)" },
+  Survived:     { label: "Survived (sống sót)",    color: "var(--status-critical)" },
+  NoCoverage:   { label: "NoCoverage (không test chạy qua)", color: "var(--status-serious)" },
+  CompileError: { label: "CompileError (không hợp lệ)", color: "var(--status-muted)" },
+  RuntimeError: { label: "RuntimeError (không hợp lệ)", color: "var(--status-muted)" },
+};
+const VERDICT_META = {
+  real_gap:   { label: "real_gap (lỗ hổng thật)",        color: "var(--cat-1)" },
+  equivalent: { label: "equivalent (hành vi không đổi)", color: "var(--cat-3)" },
+  not_worth:  { label: "not_worth (không đáng viết test)", color: "var(--cat-4)" },
+};
+const STATUS_ORDER = ["Killed", "Timeout", "Survived", "NoCoverage", "CompileError", "RuntimeError"];
+const VERDICT_ORDER = ["real_gap", "equivalent", "not_worth"];
+
+function pct(x) { return (x * 100).toFixed(1) + "%"; }
+
+function barRow(label, value, colorVar) {
+  const width = Math.max(0, Math.min(100, value * 100));
+  return `
+    <div class="bar-row">
+      <div class="row-label">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${width}%; background:${colorVar}"></div></div>
+      <div class="bar-value">${pct(value)}</div>
+    </div>`;
+}
+
+function statusTable(before, after) {
+  const rows = STATUS_ORDER
+    .filter(s => (before[s] || 0) > 0 || (after[s] || 0) > 0)
+    .map(s => `
+      <tr>
+        <td><span class="dot" style="background:${STATUS_META[s].color}"></span>${STATUS_META[s].label}</td>
+        <td class="num">${before[s] || 0}</td>
+        <td class="num">${after[s] || 0}</td>
+      </tr>`).join("");
+  return `
+    <table>
+      <caption>Trạng thái mutant (loại trừ Ignored / ngoài phạm vi mutate)</caption>
+      <thead><tr><th>Trạng thái</th><th class="num">Trước</th><th class="num">Sau</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function verdictTable(verdicts) {
+  const rows = VERDICT_ORDER
+    .filter(v => verdicts[v])
+    .map(v => `
+      <tr>
+        <td><span class="dot" style="background:${VERDICT_META[v].color}"></span>${VERDICT_META[v].label}</td>
+        <td class="num">${verdicts[v]}</td>
+      </tr>`).join("");
+  return `
+    <table>
+      <caption>Review survivor baseline &mdash; mentor đã xác nhận toàn bộ</caption>
+      <thead><tr><th>Verdict</th><th class="num">Số mutant</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function targetCard(key, data) {
+  const meta = TARGET_META[key];
+  const deltaPP = ((data.after.score - data.baseline.score) * 100).toFixed(1);
+  return `
+    <section class="card">
+      <h2>${meta.title} <span style="font-weight:400;color:var(--text-secondary);font-size:14px">&middot; ${meta.tool}</span></h2>
+      <p class="rule">${data.business_rule}</p>
+
+      <div class="stat-row">
+        <div class="stat-tile">
+          <div class="label">Điểm baseline</div>
+          <div class="value">${pct(data.baseline.score)}</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Điểm sau khi thêm test</div>
+          <div class="value">${pct(data.after.score)}</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Chênh lệch</div>
+          <div class="value delta">+${deltaPP} đpt</div>
+        </div>
+        <div class="stat-tile">
+          <div class="label">Thời gian chạy</div>
+          <div class="value" style="font-size:16px">${data.baseline.duration_s}s &rarr; ${data.after.duration_s}s</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--series-before)"></span>${data.baseline.label}</span>
+        <span><span class="swatch" style="background:var(--series-after)"></span>${data.after.label}</span>
+      </div>
+      ${barRow("Mutation score", data.baseline.score, "var(--series-before)")}
+      ${barRow("Mutation score", data.after.score, "var(--series-after)")}
+
+      <div class="two-col">
+        ${statusTable(data.baseline.counts, data.after.counts)}
+        ${verdictTable(data.verdicts)}
+      </div>
+    </section>`;
+}
+
+let currentJobId = null;
+let pollTimer = null;
+let runStartedAt = null;
+
+async function runDemo() {
+  const target = document.getElementById("run-target").value;
+  const withTests = document.getElementById("run-with-tests").checked;
+  const btn = document.getElementById("run-btn");
+  const meta = document.getElementById("run-meta");
+  const log = document.getElementById("run-log");
+  const result = document.getElementById("run-result");
+
+  btn.disabled = true;
+  result.style.display = "none";
+  result.innerHTML = "";
+  log.style.display = "block";
+  log.textContent = "";
+  meta.innerHTML = '<span class="spinner"></span>Đang khởi động...';
+  runStartedAt = Date.now();
+
+  let res;
+  try {
+    res = await fetch("/api/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ target, with_tests: withTests }),
+    });
+  } catch (err) {
+    meta.textContent = "Không gọi được server (" + err.message + "). Chạy: python3 demo/server.py";
+    btn.disabled = false;
+    return;
+  }
+  const data = await res.json();
+  if (!res.ok) {
+    meta.textContent = "Lỗi: " + (data.error || res.status);
+    btn.disabled = false;
+    return;
+  }
+  currentJobId = data.job_id;
+  meta.innerHTML = '<span class="spinner"></span>Đang chạy: <code>' + data.cmd + "</code>";
+  let offset = 0;
+  pollTimer = setInterval(async () => {
+    const r = await fetch(`/api/status?job_id=${currentJobId}&offset=${offset}`);
+    const st = await r.json();
+    if (st.log_chunk) log.textContent += st.log_chunk;
+    offset = st.offset;
+    log.scrollTop = log.scrollHeight;
+    const elapsed = ((Date.now() - runStartedAt) / 1000).toFixed(0);
+    if (st.running) {
+      meta.innerHTML = `<span class="spinner"></span>Đang chạy (${elapsed}s)${st.out_dir ? " &middot; " + st.out_dir : ""}&hellip;`;
+      return;
+    }
+    clearInterval(pollTimer);
+    btn.disabled = false;
+    if (st.error && !st.stats) {
+      meta.textContent = "Thất bại: " + st.error;
+      return;
+    }
+    meta.innerHTML = `<span class="run-badge-ok">&#10003; Chạy xong thật, mất ${elapsed}s</span> &middot; kết quả tại <code>results/${st.out_dir}</code>`;
+    renderLiveResult(target, st.stats);
+  }, 1200);
+}
+
+function renderLiveResult(target, stats) {
+  const result = document.getElementById("run-result");
+  const meta = TARGET_META[target];
+  result.style.display = "block";
+  result.innerHTML = `
+    <div class="stat-row">
+      <div class="stat-tile">
+        <div class="label">${meta.title} &middot; điểm vừa chạy</div>
+        <div class="value">${pct(stats.score)}</div>
+      </div>
+      <div class="stat-tile">
+        <div class="label">Bắt được / hợp lệ</div>
+        <div class="value" style="font-size:18px">${stats.detected} / ${stats.valid}</div>
+      </div>
+    </div>
+    <table>
+      <caption>Trạng thái mutant &mdash; từ lần chạy vừa xong (không phải số có sẵn)</caption>
+      <thead><tr><th>Trạng thái</th><th class="num">Số lượng</th></tr></thead>
+      <tbody>${STATUS_ORDER.filter(s => stats.counts[s]).map(s => `
+        <tr><td><span class="dot" style="background:${STATUS_META[s].color}"></span>${STATUS_META[s].label}</td>
+        <td class="num">${stats.counts[s]}</td></tr>`).join("")}</tbody>
+    </table>`;
+}
+
+fetch("data.json")
+  .then(r => {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  })
+  .then(data => {
+    document.getElementById("status").style.display = "none";
+    document.getElementById("highlights").style.display = "block";
+    const html = Object.entries(data.targets).map(([k, v]) => targetCard(k, v)).join("");
+    document.getElementById("targets").innerHTML = html;
+  })
+  .catch(err => {
+    document.getElementById("status").innerHTML =
+      "Không tải được data.json (" + err.message + "). Chạy <code>python3 demo/build_data.py</code> rồi mở trang qua " +
+      "<code>python3 -m http.server</code> (không mở trực tiếp bằng file://).";
+  });
+</script>
+</body>
+</html>
