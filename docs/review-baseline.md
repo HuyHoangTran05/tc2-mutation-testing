@@ -1,12 +1,12 @@
-# Review mutant sống sót sau baseline (cần mentor xác nhận)
+# Review mutant sống sót sau baseline (đã được mentor xác nhận)
 
-Ngày: 17/09/2026. Mọi verdict dưới đây là **đề xuất của Claude**, chưa được mentor xác nhận (`mentor_confirmed` còn trống).
-Dữ liệu chi tiết nằm trong [`data/reviewed/dinero.csv`](../data/reviewed/dinero.csv) và
-[`data/reviewed/stateless.csv`](../data/reviewed/stateless.csv).
+Ngày đề xuất: 17/09/2026. Ngày mentor xác nhận: 18/09/2026. Mọi verdict dưới đây ban đầu là **đề xuất của Claude**; mentor đã
+xác nhận đồng ý toàn bộ (`mentor_confirmed = yes` trong cả hai file CSV). Dữ liệu chi tiết nằm trong
+[`data/reviewed/dinero.csv`](../data/reviewed/dinero.csv) và [`data/reviewed/stateless.csv`](../data/reviewed/stateless.csv).
 
-**Cần mentor làm:** với mỗi dòng `real_gap`, xác nhận có nên viết test không. Với `equivalent` và `not_worth`, xác nhận có
-đồng ý loại khỏi danh sách cần xử lý không. Test ứng viên nằm trong [`patches/`](../patches/). Chúng chỉ được thêm tạm vào
-repo mục tiêu khi chạy `tc2 run --with-tests`.
+Test ứng viên trong [`patches/`](../patches/) đã trở thành chính thức và được chạy lại với nhãn `after-tests`
+(xem [Kết quả chạy chính thức](#kết-quả-chạy-chính-thức-after-tests) bên dưới). Chúng chỉ được thêm tạm vào repo mục tiêu
+khi chạy `tc2 run --with-tests`.
 
 ## Tổng quan
 
@@ -50,21 +50,23 @@ repo mục tiêu khi chạy `tc2 run --with-tests`.
 | 1652 | `StateRepresentation.cs:253`: `throw` phòng thủ | not_worth | Có vẻ không đi tới được qua API công khai. |
 | 1715 | `TransitionGuard.cs:101`: `All` thành `Any` | not_worth | Hàm `GuardConditionsMet` bản sync không có chỗ gọi nào trong `src/`, chỉ test gọi tới. |
 
-## Kết quả chạy lại với test ứng viên
+## Kết quả chạy chính thức (`after-tests`)
 
-Commit ghim, phiên bản công cụ và phạm vi mutate giữ nguyên. Test ứng viên chỉ được thêm tạm trong lúc chạy.
+Commit ghim, phiên bản công cụ và phạm vi mutate giữ nguyên so với baseline. Sau khi mentor xác nhận, test trong `patches/`
+được chạy chính thức với nhãn `after-tests` (trước đó là `candidate-tests`, cùng một bộ test, cùng kết quả — số liệu dưới
+đây là từ lần chạy `after-tests`).
 
 | Target | Mốc so sánh | Điểm trước | Điểm sau | Sống sót | NoCoverage | Thời gian |
 | --- | --- | --- | --- | --- | --- | --- |
-| Dinero.js | baseline lặp lại lần 1 | 347/359 = 96.7% | 354/359 = 98.6% | 11 → 5 | 1 → 0 | 114 s → 119 s |
-| Stateless | baseline | 85/97 = 87.6% | 90/97 = 92.8% | 6 → 4 | 6 → 3 | 38 s → 34 s |
+| Dinero.js | baseline lặp lại lần 1 | 347/359 = 96.7% | 354/359 = 98.6% | 11 → 5 | 1 → 0 | 114 s → 70.5 s |
+| Stateless | baseline | 85/97 = 87.6% | 90/97 = 92.8% | 6 → 4 | 6 → 3 | 38 s → 43 s |
 
 - **Dinero.js:** 9 test mới (4 file) bắt được cả 7 lỗ hổng thật. Mutant 297 và 298 bị bắt theo kiểu **Timeout**: khi bỏ nhánh chống treo,
   input `1e33` làm vòng lặp chạy mãi. Mutant 81 trước đây chỉ bị bắt nhờ may mắn, giờ bị bắt chắc chắn. 5 mutant còn lại
   đều là `equivalent` hoặc `not_worth`. Bảng chi tiết:
-  [`dinero-repeat1-vs-candidate-tests.md`](comparisons/dinero-repeat1-vs-candidate-tests.md).
+  [`dinero-repeat1-vs-after-tests.md`](comparisons/dinero-repeat1-vs-after-tests.md).
 - **Stateless:** 4 test mới bắt được cả 5 lỗ hổng thật. 7 mutant còn lại (4 Survived, 3 NoCoverage) đều là `equivalent` hoặc
-  `not_worth`. Bảng chi tiết: [`stateless-baseline-vs-candidate-tests.md`](comparisons/stateless-baseline-vs-candidate-tests.md).
+  `not_worth`. Bảng chi tiết: [`stateless-baseline-vs-after-tests.md`](comparisons/stateless-baseline-vs-after-tests.md).
 - **Chỉ có một đề xuất bị sai** (mutant 1633): lần chạy có test ứng viên đã phát hiện ra, và verdict đã được sửa thành `equivalent`.
 
 ## Điều rút ra cho câu hỏi nghiên cứu

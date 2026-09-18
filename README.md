@@ -79,19 +79,20 @@ Test mới đặt trong `patches/<target>/`, giữ đúng đường dẫn như t
 
 ## Kết quả
 
-Review chi tiết (đang chờ mentor xác nhận): [`docs/review-baseline.md`](docs/review-baseline.md).
+Review chi tiết, **đã được mentor xác nhận toàn bộ** (`mentor_confirmed = yes` trong
+[`data/reviewed/`](data/reviewed/)): [`docs/review-baseline.md`](docs/review-baseline.md).
 
 | Target | Lần chạy | Điểm (bắt được / hợp lệ) | Killed | Timeout | Survived | NoCoverage | Không hợp lệ | Thời gian |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Dinero.js | baseline | 348/359 = 96.9% | 344 | 4 | 10 | 1 | 0 | 101 s |
 | Dinero.js | baseline lặp lại 1 và 2 | 347/359 = 96.7% | 343 | 4 | 11 | 1 | 0 | 114-118 s |
-| Dinero.js | + 9 test ứng viên | **354/359 = 98.6%** | 348 | 6 | 5 | 0 | 0 | 119 s |
+| Dinero.js | + 9 test đã xác nhận (`after-tests`) | **354/359 = 98.6%** | 348 | 6 | 5 | 0 | 0 | 70-119 s |
 | Stateless | baseline | 85/97 = 87.6% | 85 | 0 | 6 | 6 | 20 | 38 s |
-| Stateless | + 4 test ứng viên | **90/97 = 92.8%** | 90 | 0 | 4 | 3 | 20 | 34 s |
+| Stateless | + 4 test đã xác nhận (`after-tests`) | **90/97 = 92.8%** | 90 | 0 | 4 | 3 | 20 | 34-43 s |
 
-Review các mutant sống sót (verdict do Claude đề xuất, chưa được xác nhận):
+Review các mutant sống sót, verdict do Claude đề xuất và **mentor đã xác nhận đồng ý toàn bộ**:
 
-| Target | real_gap | equivalent | not_worth | Lỗ hổng thật bị test ứng viên bắt |
+| Target | real_gap | equivalent | not_worth | Lỗ hổng thật bị test mới bắt |
 | --- | ---: | ---: | ---: | ---: |
 | Dinero.js | 7 | 4 | 1 | 7/7 |
 | Stateless | 5 | 2 | 5 | 5/5 |
