@@ -17,7 +17,8 @@ from .summarize import compute_counts, fmt_score, iter_mutants, load_report, loa
 
 def mutant_key(file_name: str, mutant: dict) -> tuple:
     start = mutant["location"]["start"]
-    return (file_name, start["line"], start["column"], mutant["mutatorName"], mutant.get("replacement") or "")
+    replacement = (mutant.get("replacement") or "").replace("\r\n", "\n")
+    return (file_name, start["line"], start["column"], mutant["mutatorName"], replacement)
 
 
 def statuses(report: dict) -> dict[tuple, tuple[str, str]]:

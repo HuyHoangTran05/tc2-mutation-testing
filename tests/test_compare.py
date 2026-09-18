@@ -40,6 +40,17 @@ def test_render_reports_scores_and_changes(tmp_path):
     assert "| 3 | `src/up.ts` | 1 | BlockStatement | NoCoverage | Killed |  |" in text
 
 
+def test_changed_mutants_ignores_crlf_vs_lf_in_replacement():
+    before = make_report()
+    after = copy.deepcopy(before)
+    for report in (before, after):
+        mutant = report["files"]["src/up.ts"]["mutants"][1]
+        mutant["mutatorName"] = "Logical mutation"
+        mutant["replacement"] = "a &&\r\nb" if report is before else "a &&\nb"
+
+    assert compare.changed_mutants(before, after) == []
+
+
 def test_render_without_changes(tmp_path):
     for name in ("a", "b"):
         (tmp_path / name).mkdir()
